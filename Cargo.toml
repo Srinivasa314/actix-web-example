@@ -7,3 +7,5 @@ edition = "2018"
 [dependencies]
 actix-web = "2.0.0"
 actix-rt = "1.1.1"
+diesel = { version = "1.0.0", features = ["mysql"] }
+dotenv = "0.15.0"
