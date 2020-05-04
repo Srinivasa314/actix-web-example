@@ -1,6 +1,6 @@
 table! {
     accounts (username) {
         username -> Varchar,
-        password_hash -> Nullable<Binary>,
+        password_hash -> Binary,
     }
 }
