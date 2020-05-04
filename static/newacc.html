@@ -2,20 +2,25 @@
 
 <head>
     <style>
-        form {
-            border: 1px solid;
+        .form {
             position: absolute;
             left: 50%;
             top: 50%;
-            padding: 18px;
-            background-color: #eeeeee;
             -webkit-transform: translate(-50%, -50%);
             transform: translate(-50%, -50%);
             text-align: center;
+        }
+
+        form {
+            border: 1px solid;
+            padding: 18px;
+            background-color: #eeeeee;
             font-size: 18px;
+            border-radius: 5px;
         }
 
         body {
+            font-size: 16px;
             font-family: sans-serif;
             background-color: #ffeeff;
         }
@@ -24,7 +29,10 @@
             font-size: 18px;
             background-color: greenyellow;
             border-radius: 5px;
-            float: right;
+            border: 1px solid;
+            display: block;
+            margin-right: 0;
+            margin-left: auto;
         }
 
         .row {
@@ -42,26 +50,31 @@
 </head>
 
 <body>
-    <form action="/acc_create" method="POST">
-        <span style="font-size: 25px;">Create a new account</span>
+    <div class="form">
+        {{message}}
         <br><br>
-        <div class="row">
-            <label>Username:</label> <input name="username" maxlength="255">
+        <form action="/acc_create" method="POST">
+            <span style="font-size: 25px;">Create a new account</span>
+            <br><br>
+            <div class="row">
+                <label>Username:</label> <input name="username" maxlength="255">
 
-        </div>
-        <br>
-        <div class="row">
-            <label>Password</label>: <input name="password" type="password">
+            </div>
+            <br>
+            <div class="row">
+                <label>Password</label>: <input name="password" type="password">
 
-        </div>
-        <br>
-        <div class="row">
-            <label>Confirm Password: </label><input name="passconfirm" type="password">
+            </div>
+            <br>
+            <div class="row">
+                <label>Confirm Password: </label><input name="passconfirm" type="password">
 
-        </div>
-        <br>
-        <button type="submit">Create an account</button>
-    </form>
+            </div>
+            <br>
+            <button type="submit">Create an account</button>
+        </form>
+
+    </div>
 </body>
 
 </html>
