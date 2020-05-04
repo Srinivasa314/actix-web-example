@@ -2,25 +2,65 @@
 
 <head>
     <style>
-        .form {
-            border: 2px solid;
+        form {
+            border: 1px solid;
             position: absolute;
             left: 50%;
-            background-color: lightgray;
             top: 50%;
-            padding: 20px;
+            padding: 18px;
+            background-color: #eeeeee;
             -webkit-transform: translate(-50%, -50%);
             transform: translate(-50%, -50%);
+            text-align: center;
+            font-size: 18px;
+        }
+
+        body {
+            font-family: sans-serif;
+            background-color: #ffeeff;
+        }
+
+        button {
+            font-size: 18px;
+            background-color: greenyellow;
+            border-radius: 5px;
+            float: right;
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+        }
+
+        input {
+            margin-left: 15px;
+            border: 1px solid grey;
+            border-radius: 3px;
+            font-size: 18px;
         }
     </style>
 </head>
 
 <body>
-    <form class="form" action="/acc_create" method="POST">
-        Username: <input name="username" maxlength="255"> <br> <br>
-        Password: <input name="password" type="password"> <br> <br>
-        Confirm Password: <input name="passconfirm" type="password"> <br> <br>
-        <button type="submit">Submit</button>
+    <form action="/acc_create" method="POST">
+        <span style="font-size: 25px;">Create a new account</span>
+        <br><br>
+        <div class="row">
+            <label>Username:</label> <input name="username" maxlength="255">
+
+        </div>
+        <br>
+        <div class="row">
+            <label>Password</label>: <input name="password" type="password">
+
+        </div>
+        <br>
+        <div class="row">
+            <label>Confirm Password: </label><input name="passconfirm" type="password">
+
+        </div>
+        <br>
+        <button type="submit">Create an account</button>
     </form>
 </body>
 
