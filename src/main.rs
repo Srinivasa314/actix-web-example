@@ -8,6 +8,11 @@ use diesel::{insert_into, MysqlConnection, RunQueryDsl};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
+#[get("/style.css")]
+async fn style() -> impl Responder {
+    NamedFile::open("static/style.css")
+}
+
 #[get("/")]
 async fn login() -> impl Responder {
     NamedFile::open("static/login.html")
@@ -68,6 +73,7 @@ async fn main() -> std::io::Result<()> {
             .service(login)
             .service(newacc)
             .service(create_account)
+            .service(style)
     })
     .bind("127.0.0.1:8000")?
     .run()
