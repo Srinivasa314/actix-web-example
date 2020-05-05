@@ -38,13 +38,14 @@ async fn create_account(pool: Data<DbPool>, params: Form<AccountCreateParams>) -
         "Username is too long"
     } else {
         let conn = pool.get().expect("Could not get db connection");
+        let mut hasher = Sha256::new();
+        hasher.input(&params.password);
+        let pass_hash = hasher.result();
         match block(move || {
-            let mut hasher = Sha256::new();
-            hasher.input(&params.password);
             insert_into(schema::accounts::dsl::accounts)
                 .values(&models::Account {
                     username: params.username.clone(),
-                    password_hash: &hasher.result(),
+                    password_hash: &pass_hash,
                 })
                 .execute(&conn)
         })
