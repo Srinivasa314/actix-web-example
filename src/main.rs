@@ -59,16 +59,17 @@ async fn create_account(pool: Data<DbPool>, params: Form<AccountCreateParams>) -
 #[actix_rt::main]
 
 async fn main() -> std::io::Result<()> {
-    dotenv::dotenv().ok();
-    let conn_url = std::env::var("DATABASE_URL").expect("Failed to get value of DATABASE_URL");
-    let manager = ConnectionManager::<MysqlConnection>::new(conn_url);
-    let pool = r2d2::Pool::builder()
-        .build(manager)
-        .expect("Failed to create pool");
+    HttpServer::new(|| {
+        dotenv::dotenv().ok();
+        let conn_url = std::env::var("DATABASE_URL").expect("Failed to get value of DATABASE_URL");
+        let manager = ConnectionManager::<MysqlConnection>::new(conn_url);
 
-    HttpServer::new(move || {
+        let pool = r2d2::Pool::builder()
+            .build(manager)
+            .expect("Failed to create pool");
+
         App::new()
-            .data(pool.clone())
+            .data(pool)
             .service(login)
             .service(newacc)
             .service(create_account)
