@@ -1,5 +1,41 @@
 <html>
-    TODO:Create login form
-    <br>
-    <a href="/newacc">Not an existing user?Create an account.</a>
+
+<head>
+    <link rel="stylesheet" type="text/css" href="/style.css">
+    <style>
+        button {
+            font-size: 20px;
+            width: 100px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="center-box">
+        <div class="form">
+            <span style="font-size: 25px;">Login</span>
+
+            <br><br>
+
+            <div class="row">
+                <label>Username:</label> <input id="username" maxlength="255">
+            </div>
+
+            <br>
+
+            <div class="row">
+                <label>Password</label>: <input id="password" type="password">
+            </div>
+
+            <br>
+
+            <button onclick="login()">Login</button>
+        </div>
+        <br><br>
+        <span id="message"></span>
+        <br>
+        <a href="/newacc">Create an account</a>
+    </div>
+</body>
+
 </html>
