@@ -2,7 +2,7 @@
 
 <head>
     <style>
-        .form {
+        .center-box {
             position: absolute;
             left: 50%;
             top: 50%;
@@ -11,7 +11,7 @@
             text-align: center;
         }
 
-        form {
+        .form {
             border: 1px solid;
             padding: 18px;
             background-color: #eeeeee;
@@ -47,32 +47,69 @@
             font-size: 18px;
         }
     </style>
+    <script>
+        function get(id) {
+            return document.getElementById(id);
+        }
+
+        function urlencodeFormData(fd) {
+            var s = '';
+            function encode(s) { return encodeURIComponent(s).replace(/%20/g, '+'); }
+            for (var pair of fd.entries()) {
+                if (typeof pair[1] == 'string') {
+                    s += (s ? '&' : '') + encode(pair[0]) + '=' + encode(pair[1]);
+                }
+            }
+            return s;
+        }
+
+
+        function create_account() {
+            if (get("password").value != get("passconfirm").value)
+                get("message").innerHTML = "Passwords do not match <br> <br>"
+            else if (get("password").value.length < 8)
+                get("message").innerHTML = "Password too short <br> <br>"
+            else {
+                var formData = new FormData();
+                formData.append("username", get("username").value);
+                formData.append("password", get("password").value);
+
+                var request = new XMLHttpRequest();
+                request.onreadystatechange = function () {
+                    if (request.readyState == XMLHttpRequest.DONE)
+                        get("message").innerHTML = request.responseText + '<br><br>'
+                }
+                request.open("POST", "/acc_create");
+                request.setRequestHeader('Content-Type','application/x-www-form-urlencoded')
+                request.send(urlencodeFormData(formData));
+            }
+        }
+    </script>
 </head>
 
 <body>
-    <div class="form">
-        {{message}}
-        <br><br>
-        <form action="/acc_create" method="POST">
+    <div class="center-box">
+        <span id="message"></span>
+        <div class="form">
             <span style="font-size: 25px;">Create a new account</span>
             <br><br>
             <div class="row">
-                <label>Username:</label> <input name="username" maxlength="255">
+                <label>Username:</label> <input id="username" maxlength="255">
 
             </div>
             <br>
             <div class="row">
-                <label>Password</label>: <input name="password" type="password">
+                <label>Password</label>: <input id="password" type="password">
 
             </div>
             <br>
             <div class="row">
-                <label>Confirm Password: </label><input name="passconfirm" type="password">
+                <label>Confirm Password: </label><input id="passconfirm" type="password">
 
             </div>
             <br>
-            <button type="submit">Create an account</button>
-        </form>
+            <button onclick="create_account()">Create an account</button>
+        </div>
 
     </div>
 </body>

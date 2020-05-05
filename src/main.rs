@@ -24,7 +24,6 @@ type DbPool = r2d2::Pool<ConnectionManager<MysqlConnection>>;
 struct AccountCreateParams {
     username: String,
     password: String,
-    passconfirm: String,
 }
 
 mod models;
@@ -32,28 +31,23 @@ mod schema;
 
 #[post("/acc_create")]
 async fn create_account(pool: Data<DbPool>, params: Form<AccountCreateParams>) -> impl Responder {
-    if params.password != params.passconfirm {
-        "Passwords do not match"
-    } else if params.username.len() > 255 {
-        "Username is too long"
-    } else {
-        let conn = pool.get().expect("Could not get db connection");
-        let mut hasher = Sha256::new();
-        hasher.input(&params.password);
-        let pass_hash = hasher.result();
-        match block(move || {
-            insert_into(schema::accounts::dsl::accounts)
-                .values(&models::Account {
-                    username: params.username.clone(),
-                    password_hash: &pass_hash,
-                })
-                .execute(&conn)
-        })
-        .await
-        {
-            Ok(_) => "Account created!",
-            Err(_) => "Username exists",
-        }
+    let conn = pool.get().expect("Could not get db connection");
+    let mut hasher = Sha256::new();
+    hasher.input(&params.password);
+    let pass_hash = hasher.result();
+
+    match block(move || {
+        insert_into(schema::accounts::dsl::accounts)
+            .values(&models::Account {
+                username: params.username.clone(),
+                password_hash: &pass_hash,
+            })
+            .execute(&conn)
+    })
+    .await
+    {
+        Ok(_) => "Account created! <a href='/'>Login</a>",
+        Err(_) => "Username exists",
     }
 }
 
