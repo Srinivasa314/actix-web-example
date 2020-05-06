@@ -1,8 +1,8 @@
+use super::{accounts, block, dsl, models, Data};
+use actix_web::error::BlockingError;
 pub use diesel::prelude::*;
 pub use diesel::r2d2::{self, ConnectionManager, PooledConnection};
 pub use diesel::{insert_into, MysqlConnection, RunQueryDsl};
-use actix_web::error::BlockingError;
-use super::*;
 
 pub type DbPool = r2d2::Pool<ConnectionManager<MysqlConnection>>;
 
@@ -20,7 +20,10 @@ pub async fn change_password(
     .expect("Unable to change password");
 }
 
-pub async fn delete_user(username: String, conn: PooledConnection<ConnectionManager<MysqlConnection>>) {
+pub async fn delete_user(
+    username: String,
+    conn: PooledConnection<ConnectionManager<MysqlConnection>>,
+) {
     block(move || diesel::delete(accounts.filter(dsl::username.eq(username))).execute(&conn))
         .await
         .expect("Could not delete user");
