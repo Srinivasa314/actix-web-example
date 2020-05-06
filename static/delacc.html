@@ -1,0 +1,50 @@
+<html>
+
+<head>
+    <link rel="stylesheet" type="text/css" href="/style.css">
+    <style>
+        button {
+            font-size: 18px;
+        }
+    </style>
+
+    <script>
+        function get(id) {
+            return document.getElementById(id);
+        }
+
+        function delete_account() {
+            var request = new XMLHttpRequest();
+            request.withCredentials = true;
+            request.onreadystatechange = function () {
+                let response = request.responseText
+                get("message").innerText = response
+                if (response == "Account deleted")
+                    setTimeout(() => {
+                        window.location = '/'
+                    }, 2000)
+            }
+            request.open("POST", "/confirm_delacc");
+            request.send(get("password").value);
+        }
+    </script>
+</head>
+
+<body>
+    <div class="center-box">
+        <h3 style="color: red;">Type your password to delete your account</h3>
+        <div class="form">
+            <div class="row">
+                <label>Password</label>: <input id="password" type="password">
+            </div>
+            <br>
+            <button onclick="delete_account()">Delete account</button>
+        </div>
+        <br>
+        <span id="message"></span>
+        <br><br>
+        <a href="/">Go Back</a>
+    </div>
+</body>
+
+</html>
