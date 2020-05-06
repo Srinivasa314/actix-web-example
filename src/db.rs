@@ -1,8 +1,9 @@
-use super::{accounts, block, dsl, models, Data};
-use actix_web::error::BlockingError;
+pub use super::schema::accounts::dsl::{self, accounts};
+pub use super::models;
+use actix_web::{error::BlockingError, web::block, web::Data};
+
 pub use diesel::prelude::*;
-pub use diesel::r2d2::{self, ConnectionManager, PooledConnection};
-pub use diesel::{insert_into, MysqlConnection, RunQueryDsl};
+use diesel::r2d2::{self, ConnectionManager, PooledConnection};
 
 pub type DbPool = r2d2::Pool<ConnectionManager<MysqlConnection>>;
 
