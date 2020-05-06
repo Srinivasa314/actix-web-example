@@ -24,6 +24,7 @@
                         window.location = '/'
                     }, 2000)
             }
+            
             request.open("POST", "/confirm_delacc");
             request.send(get("password").value);
         }
