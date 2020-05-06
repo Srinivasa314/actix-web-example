@@ -1,14 +1,11 @@
 use actix_files::{Files, NamedFile};
 use actix_web::{
-    error::BlockingError, get, http, post, web::block, web::Data, web::Form, App, HttpResponse,
+    get, http, post, web::block, web::Data, web::Form, App, HttpResponse,
     HttpServer, Responder,
 };
 
 #[macro_use]
 extern crate diesel;
-use diesel::prelude::*;
-use diesel::r2d2::{self, ConnectionManager, PooledConnection};
-use diesel::{insert_into, MysqlConnection, RunQueryDsl};
 
 use actix_identity::{CookieIdentityPolicy, Identity, IdentityService};
 use io::prelude::*;
@@ -39,27 +36,15 @@ async fn logout(id: Identity) -> impl Responder {
     NamedFile::open("static/login.html")
 }
 
-type DbPool = r2d2::Pool<ConnectionManager<MysqlConnection>>;
 mod models;
 mod schema;
+mod db;
+use db::*;
 
 fn sha256(s: &str) -> Vec<u8> {
     let mut hasher = Sha256::new();
     hasher.input(s);
     hasher.result().to_vec()
-}
-
-async fn get_user_from_database(
-    username: String,
-    pool: Data<DbPool>,
-) -> Result<Vec<models::Account>, BlockingError<diesel::result::Error>> {
-    block(move || {
-        let conn = pool.get().expect("Could not get db connection");
-        accounts
-            .filter(dsl::username.eq(username))
-            .load::<models::Account>(&conn)
-    })
-    .await
 }
 
 #[derive(Serialize, Deserialize)]
@@ -150,20 +135,6 @@ async fn chpass_request(
     }
 }
 
-async fn change_password(
-    username: String,
-    newpasshash: Vec<u8>,
-    conn: PooledConnection<ConnectionManager<MysqlConnection>>,
-) {
-    block(move || {
-        diesel::update(accounts.filter(dsl::username.eq(username)))
-            .set(dsl::password_hash.eq(newpasshash))
-            .execute(&conn)
-    })
-    .await
-    .expect("Unable to change password");
-}
-
 #[post("/confirm_delacc")]
 async fn confirm_delacc(id: Identity, pool: Data<DbPool>, body: bytes::Bytes) -> impl Responder {
     let password = String::from_utf8_lossy(&body);
@@ -198,14 +169,7 @@ async fn confirm_delacc(id: Identity, pool: Data<DbPool>, body: bytes::Bytes) ->
     }
 }
 
-async fn delete_user(username: String, conn: PooledConnection<ConnectionManager<MysqlConnection>>) {
-    block(move || diesel::delete(accounts.filter(dsl::username.eq(username))).execute(&conn))
-        .await
-        .expect("Could not delete user");
-}
-
 #[actix_rt::main]
-
 async fn main() -> io::Result<()> {
     dotenv::dotenv().ok();
     let conn_url = std::env::var("DATABASE_URL").expect("Failed to get value of DATABASE_URL");
