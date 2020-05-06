@@ -22,6 +22,11 @@ async fn style() -> impl Responder {
     NamedFile::open("static/style.css")
 }
 
+#[get("/util.js")]
+async fn utiljs() -> impl Responder {
+    NamedFile::open("static/util.js")
+}
+
 #[get("/")]
 async fn index(tmpl: Data<Tera>, id: Identity) -> impl Responder {
     if id.identity().is_some() {
@@ -272,6 +277,7 @@ async fn main() -> io::Result<()> {
             .service(confirm_delacc)
             .service(login_request)
             .service(chpass)
+            .service(utiljs)
             .service(chpass_request)
     })
     .bind("127.0.0.1:8000")?
