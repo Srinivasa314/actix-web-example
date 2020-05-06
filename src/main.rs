@@ -51,7 +51,7 @@ fn sha256(s: &str) -> Vec<u8> {
 
 async fn get_user_from_database(
     username: String,
-    pool: &DbPool,
+    pool: Data<DbPool>,
 ) -> Result<Vec<models::Account>, BlockingError<diesel::result::Error>> {
     block(move || {
         let conn = pool.get().expect("Could not get db connection");
@@ -96,7 +96,7 @@ async fn login_request(
 ) -> impl Responder {
     let username = params.username.clone();
 
-    match get_user_from_database(username, &pool).await {
+    match get_user_from_database(username, pool).await {
         Ok(result) => match result.len() {
             0 => "No such user",
             _ => {
@@ -125,11 +125,12 @@ async fn chpass_request(
     params: Form<ChangePassParams>,
 ) -> impl Responder {
     let pool1 = pool.clone();
+
     match id.identity() {
         None => "Invalid session",
         Some(username) => {
             let name = username.clone();
-            match get_user_from_database(username, &pool).await {
+            match get_user_from_database(username, pool).await {
                 Ok(result) => {
                     if result[0].password_hash == sha256(&params.oldpass) {
                         change_password(
@@ -172,6 +173,7 @@ async fn confirm_delacc(id: Identity, pool: Data<DbPool>, body: bytes::Bytes) ->
         Some(username) => {
             let pool1 = pool.clone();
             let name = username.clone();
+
             match block(move || {
                 let conn = pool.get().expect("Could not get db connection");
                 accounts
@@ -207,6 +209,7 @@ async fn delete_user(username: String, conn: PooledConnection<ConnectionManager<
 async fn main() -> io::Result<()> {
     dotenv::dotenv().ok();
     let conn_url = std::env::var("DATABASE_URL").expect("Failed to get value of DATABASE_URL");
+
     let private_key = match fs::read("cookie-key") {
         Ok(bytes) => bytes,
         Err(e) => {
@@ -214,6 +217,7 @@ async fn main() -> io::Result<()> {
                 let mut f =
                     fs::File::create("cookie-key").expect("Unable to create cookie key file");
                 let key: [u8; 32] = rand::random();
+
                 f.write(&key).expect("Unable to write to file");
                 key.to_vec()
             } else {
