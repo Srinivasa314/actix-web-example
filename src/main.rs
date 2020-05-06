@@ -1,6 +1,7 @@
 use actix_files::{Files, NamedFile};
 use actix_web::{
-    get, http, post, web::block, web::Data, web::Form, App, HttpResponse, HttpServer, Responder,
+    error::BlockingError, get, http, post, web::block, web::Data, web::Form, App, HttpResponse,
+    HttpServer, Responder,
 };
 
 #[macro_use]
@@ -48,6 +49,19 @@ fn sha256(s: &str) -> Vec<u8> {
     hasher.result().to_vec()
 }
 
+async fn get_user_from_database(
+    username: String,
+    pool: &DbPool,
+) -> Result<Vec<models::Account>, BlockingError<diesel::result::Error>> {
+    block(move || {
+        let conn = pool.get().expect("Could not get db connection");
+        accounts
+            .filter(dsl::username.eq(username))
+            .load::<models::Account>(&conn)
+    })
+    .await
+}
+
 #[derive(Serialize, Deserialize)]
 struct FormParams {
     username: String,
@@ -82,14 +96,7 @@ async fn login_request(
 ) -> impl Responder {
     let username = params.username.clone();
 
-    match block(move || {
-        let conn = pool.get().expect("Could not get db connection");
-        accounts
-            .filter(dsl::username.eq(username))
-            .load::<models::Account>(&conn)
-    })
-    .await
-    {
+    match get_user_from_database(username, &pool).await {
         Ok(result) => match result.len() {
             0 => "No such user",
             _ => {
@@ -122,14 +129,7 @@ async fn chpass_request(
         None => "Invalid session",
         Some(username) => {
             let name = username.clone();
-            match block(move || {
-                let conn = pool.get().expect("Could not get db connection");
-                accounts
-                    .filter(dsl::username.eq(username))
-                    .load::<models::Account>(&conn)
-            })
-            .await
-            {
+            match get_user_from_database(username, &pool).await {
                 Ok(result) => {
                     if result[0].password_hash == sha256(&params.oldpass) {
                         change_password(
@@ -173,9 +173,10 @@ async fn confirm_delacc(id: Identity, pool: Data<DbPool>, body: bytes::Bytes) ->
             let pool1 = pool.clone();
             let name = username.clone();
             match block(move || {
+                let conn = pool.get().expect("Could not get db connection");
                 accounts
                     .filter(dsl::username.eq(name))
-                    .load::<models::Account>(&pool.get().expect("Could not get db connection"))
+                    .load::<models::Account>(&conn)
             })
             .await
             {
