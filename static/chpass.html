@@ -1,0 +1,86 @@
+<html>
+
+<head>
+    <link rel="stylesheet" type="text/css" href="/style.css">
+    <style>
+        button {
+            font-size: 18px;
+            display: block;
+            margin-right: 0;
+            margin-left: auto;
+        }
+    </style>
+
+    <script>
+        function get(id) {
+            return document.getElementById(id);
+        }
+
+        function urlencodeFormData(fd) {
+            var s = '';
+            function encode(s) { return encodeURIComponent(s).replace(/%20/g, '+'); }
+            for (var pair of fd.entries()) {
+                if (typeof pair[1] == 'string') {
+                    s += (s ? '&' : '') + encode(pair[0]) + '=' + encode(pair[1]);
+                }
+            }
+            return s;
+        }
+
+
+        function chpass() {
+            if (get("newpass").value != get("newpassconfirm").value)
+                get("message").innerHTML = "Passwords do not match <br> <br>"
+            else if (get("newpass").value.length < 8)
+                get("message").innerHTML = "Password too short <br> <br>"
+            else {
+                var formData = new FormData();
+                formData.append("oldpass", get("oldpass").value);
+                formData.append("newpass", get("newpass").value);
+
+                var request = new XMLHttpRequest();
+                request.withCredentials = true;
+                request.onreadystatechange = function () {
+                    if (request.readyState == XMLHttpRequest.DONE)
+                        get("message").innerHTML = request.responseText + '<br><br>'
+                }
+                request.open("POST", "/chpass_request");
+                request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
+                request.send(urlencodeFormData(formData));
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <div class="center-box">
+        <span id="message"></span>
+        <div class="form">
+            <span style="font-size: 25px;">Change Password</span>
+
+            <br><br>
+
+            <div class="row">
+                <label>Old Password:</label> <input id="oldpass" type="password">
+            </div>
+
+            <br>
+
+            <div class="row">
+                <label>New Password</label>: <input id="newpass" type="password">
+            </div>
+
+            <br>
+
+            <div class="row">
+                <label>Confirm New Password: </label><input id="newpassconfirm" type="password">
+            </div>
+
+            <br>
+
+            <button onclick="chpass()">Change Password</button>
+        </div>
+    </div>
+</body>
+
+</html>

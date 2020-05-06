@@ -58,6 +58,11 @@ async fn delacc() -> impl Responder {
     NamedFile::open("static/delacc.html")
 }
 
+#[get("/chpass")]
+async fn chpass() -> impl Responder {
+    NamedFile::open("static/chpass.html")
+}
+
 type DbPool = r2d2::Pool<ConnectionManager<MysqlConnection>>;
 mod models;
 mod schema;
@@ -123,6 +128,64 @@ async fn login_request(
         },
         Err(e) => panic!(e),
     }
+}
+
+#[derive(Serialize, Deserialize)]
+struct ChangePassParams {
+    oldpass: String,
+    newpass: String,
+}
+
+#[post("/chpass_request")]
+async fn chpass_request(
+    id: Identity,
+    pool: Data<DbPool>,
+    params: Form<ChangePassParams>,
+) -> impl Responder {
+    let pool1 = pool.clone();
+    match id.identity() {
+        None => "Invalid session",
+        Some(username) => {
+            let name = username.clone();
+            match block(move || {
+                let conn = pool.get().expect("Could not get db connection");
+                accounts
+                    .filter(dsl::username.eq(username))
+                    .load::<models::Account>(&conn)
+            })
+            .await
+            {
+                Ok(result) => {
+                    if result[0].password_hash == sha256(&params.oldpass) {
+                        change_password(
+                            name,
+                            sha256(&params.newpass),
+                            pool1.get().expect("Could not get db connection"),
+                        )
+                        .await;
+                        "Password changed <a href='/'>Go Back</a>"
+                    } else {
+                        "Wrong Password"
+                    }
+                }
+                Err(e) => panic!(e),
+            }
+        }
+    }
+}
+
+async fn change_password(
+    username: String,
+    newpasshash: Vec<u8>,
+    conn: PooledConnection<ConnectionManager<MysqlConnection>>,
+) {
+    block(move || {
+        diesel::update(accounts.filter(dsl::username.eq(username)))
+            .set(dsl::password_hash.eq(newpasshash))
+            .execute(&conn)
+    })
+    .await
+    .expect("Unable to change password");
 }
 
 #[post("/confirm_delacc")]
@@ -208,6 +271,8 @@ async fn main() -> io::Result<()> {
             .service(delacc)
             .service(confirm_delacc)
             .service(login_request)
+            .service(chpass)
+            .service(chpass_request)
     })
     .bind("127.0.0.1:8000")?
     .run()
