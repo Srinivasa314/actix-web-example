@@ -35,7 +35,7 @@
                 if (request.readyState == XMLHttpRequest.DONE) {
                     let response = request.responseText
                     if (response == 'LOGIN_SUCCESS')
-                        window.location='/'
+                        window.location = '/'
                     else
                         get("message").innerText = response
                 }
