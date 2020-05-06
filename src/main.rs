@@ -1,4 +1,4 @@
-use actix_files::NamedFile;
+use actix_files::{Files, NamedFile};
 use actix_web::{
     get, http, post, web::block, web::Data, web::Form, App, HttpResponse, HttpServer, Responder,
 };
@@ -17,16 +17,6 @@ use sha2::{Digest, Sha256};
 use std::{fs, io};
 use tera::Tera;
 
-#[get("/style.css")]
-async fn style() -> impl Responder {
-    NamedFile::open("static/style.css")
-}
-
-#[get("/util.js")]
-async fn utiljs() -> impl Responder {
-    NamedFile::open("static/util.js")
-}
-
 #[get("/")]
 async fn index(tmpl: Data<Tera>, id: Identity) -> impl Responder {
     if id.identity().is_some() {
@@ -37,35 +27,15 @@ async fn index(tmpl: Data<Tera>, id: Identity) -> impl Responder {
             .body(tmpl.render("welcome.html", &ctx).expect("Template error"))
     } else {
         HttpResponse::Found()
-            .header(http::header::LOCATION, "/login")
+            .header(http::header::LOCATION, "/login.html")
             .finish()
     }
-}
-
-#[get("/login")]
-async fn login() -> impl Responder {
-    NamedFile::open("static/login.html")
-}
-
-#[get("/newacc")]
-async fn newacc() -> impl Responder {
-    NamedFile::open("static/newacc.html")
 }
 
 #[get("/logout")]
 async fn logout(id: Identity) -> impl Responder {
     id.forget();
     NamedFile::open("static/login.html")
-}
-
-#[get("/delacc")]
-async fn delacc() -> impl Responder {
-    NamedFile::open("static/delacc.html")
-}
-
-#[get("/chpass")]
-async fn chpass() -> impl Responder {
-    NamedFile::open("static/chpass.html")
 }
 
 type DbPool = r2d2::Pool<ConnectionManager<MysqlConnection>>;
@@ -268,17 +238,12 @@ async fn main() -> io::Result<()> {
             .data(pool)
             .data(tera)
             .service(index)
-            .service(newacc)
-            .service(login)
             .service(create_account)
-            .service(style)
-            .service(logout)
-            .service(delacc)
             .service(confirm_delacc)
             .service(login_request)
-            .service(chpass)
-            .service(utiljs)
             .service(chpass_request)
+            .service(Files::new("/", "static/"))
+            .service(logout)
     })
     .bind("127.0.0.1:8000")?
     .run()
