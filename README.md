@@ -16,7 +16,7 @@
  ```
  cargo install diesel_cli --no-default-features --features mysql
  ```
- 3. Change .env to be of the form 
+ 3. Change .env to be of the form given below (Refer .env in this repo as an example)
  ```
  DATABASE_URL=mysql://username:password@localhost/actix_web_example
  ```
