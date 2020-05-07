@@ -28,7 +28,7 @@ async fn index(tmpl: Data<Tera>, id: Identity) -> impl Responder {
             .body(tmpl.render("welcome.html", &ctx).expect("Template error"))
     } else {
         HttpResponse::Found()
-            .header(http::header::LOCATION, "/login.html")
+            .header(http::header::LOCATION, "/static/login.html")
             .finish()
     }
 }
@@ -81,7 +81,7 @@ async fn main() -> io::Result<()> {
             .service(confirm_delacc)
             .service(login_request)
             .service(chpass_request)
-            .service(Files::new("/", "static/"))
+            .service(Files::new("/static", "static/"))
             .service(logout)
     })
     .bind("127.0.0.1:8000")?

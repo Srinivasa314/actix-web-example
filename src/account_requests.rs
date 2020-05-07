@@ -90,7 +90,7 @@ pub async fn chpass_request(
                             pool1.get().expect("Could not get db connection"),
                         )
                         .await;
-                        "Password changed <a href='/'>Go Back</a>"
+                        "Password changed"
                     } else {
                         "Wrong Password"
                     }
