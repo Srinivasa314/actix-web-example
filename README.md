@@ -2,7 +2,14 @@
  `actix-web-example` is a complete website created using [actix-web](https://actix.rs/). 
  It uses [diesel](https://diesel.rs/) for interacting with the database.
  
- ## How to run
+ The following actions can be done
+ * Create an account
+ * Login
+ * Delete an account
+ * Change password
+ * Logout
+
+ ## Installation
  1. This uses MySql (or Maria DB) so make sure that MySql (or Maria DB) is installed and running.
  Feel free to change the code to use any other database.
  2. Diesel is also required. To install it 
@@ -18,4 +25,12 @@
  diesel setup
  diesel migration run
  ```
+
+ ## Running the server
+ ```
+ cargo run
+ ```
+
+ ## Web Client
+ [http://localhost:8000/](http://localhost:8000/)
  
