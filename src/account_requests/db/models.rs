@@ -1,4 +1,4 @@
-use crate::schema::accounts;
+use super::schema::accounts;
 
 #[derive(Queryable, Insertable)]
 pub struct Account {

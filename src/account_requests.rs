@@ -1,4 +1,5 @@
-use super::db::*;
+mod db;
+use db::*;
 
 use actix_identity::Identity;
 use actix_web::{post, web::block, web::Data, web::Form, Responder};

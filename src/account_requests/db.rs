@@ -1,5 +1,7 @@
-pub use super::schema::accounts::dsl::{self, accounts};
-pub use super::models;
+mod schema;
+pub use schema::accounts::dsl::{self, accounts};
+pub mod models;
+
 use actix_web::{error::BlockingError, web::block, web::Data};
 
 pub use diesel::prelude::*;

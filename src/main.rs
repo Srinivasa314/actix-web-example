@@ -1,8 +1,4 @@
 mod account_requests;
-mod db;
-
-pub mod models;
-mod schema;
 use account_requests::*;
 
 use actix_files::{Files, NamedFile};
