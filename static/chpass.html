@@ -14,21 +14,25 @@
     <script src="/static/util.js"></script>
     <script>
         function chpass() {
-            if (get("newpass").value != get("newpassconfirm").value)
-                get("message").innerHTML = "Passwords do not match <br> <br>"
-            else if (get("newpass").value.length < 8)
-                get("message").innerHTML = "Password too short <br> <br>"
+            var oldpass = getval("oldpass");
+            var newpass = getval("newpass");
+            var msg = get("message")
+
+            if (newpass != getval("newpassconfirm"))
+                msg.innerHTML = "Passwords do not match <br> <br>"
+            else if (newpass.length < 8)
+                msg.innerHTML = "Password too short <br> <br>"
             else {
                 var request = new XMLHttpRequest();
                 request.withCredentials = true;
                 request.onreadystatechange = function () {
                     if (request.readyState == XMLHttpRequest.DONE)
-                        get("message").innerHTML = request.responseText + '<br><br>'
+                        msg.innerHTML = request.responseText + '<br><br>'
                 }
-                
+
                 request.open("POST", "/chpass_request");
                 request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-                request.send(JSON.stringify({ "oldpass": get("oldpass").value, "newpass": get("newpass").value }));
+                request.send(JSON.stringify({ "oldpass": oldpass, "newpass": newpass }));
             }
         }
     </script>

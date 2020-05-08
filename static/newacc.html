@@ -14,19 +14,23 @@
     <script src="/static/util.js"></script>
     <script>
         function create_account() {
-            if (get("password").value != get("passconfirm").value)
-                get("message").innerHTML = "Passwords do not match <br> <br>"
-            else if (get("password").value.length < 8)
-                get("message").innerHTML = "Password too short <br> <br>"
+            var msg = get("message");
+            var username = getval("username");
+            var password = getval("password");
+
+            if (password != getval("passconfirm"))
+                msg.innerHTML = "Passwords do not match <br> <br>"
+            else if (password.length < 8)
+                msg.innerHTML = "Password too short <br> <br>"
             else {
                 var request = new XMLHttpRequest();
                 request.onreadystatechange = function () {
                     if (request.readyState == XMLHttpRequest.DONE)
-                        get("message").innerHTML = request.responseText + '<br><br>'
+                        msg.innerHTML = request.responseText + '<br><br>'
                 }
                 request.open("POST", "/acc_create");
                 request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-                request.send(JSON.stringify({"username":get("username").value,"password":get("password").value}));
+                request.send(JSON.stringify({ "username": username, "password": password }));
             }
         }
     </script>
