@@ -48,7 +48,7 @@ async fn main() -> io::Result<()> {
                     fs::File::create("cookie-key").expect("Unable to create cookie key file");
                 let key: [u8; 32] = rand::random();
 
-                f.write(&key).expect("Unable to write to file");
+                f.write_all(&key).expect("Unable to write to file");
                 key.to_vec()
             } else {
                 panic!(e)
@@ -68,7 +68,7 @@ async fn main() -> io::Result<()> {
                 CookieIdentityPolicy::new(&private_key)
                     .name("actix-web-example")
                     .secure(false)
-                    .max_age(31556952),
+                    .max_age(31_556_952),
             ))
             .data(pool)
             .data(tera)
