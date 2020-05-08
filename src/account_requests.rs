@@ -4,9 +4,9 @@ use db::*;
 use actix_identity::Identity;
 use actix_web::{post, web::block, web::Data, web::Form, Responder};
 
+use diesel::insert_into;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use diesel::insert_into;
 
 fn sha256(s: &str) -> Vec<u8> {
     let mut hasher = Sha256::new();
@@ -25,13 +25,12 @@ pub async fn create_account(pool: Data<DbPool>, params: Form<FormParams>) -> imp
     let pass_hash = sha256(&params.password);
 
     match block(move || {
-        let conn = pool.get().expect("Could not get db connection");
         insert_into(accounts)
             .values(&models::Account {
                 username: params.username.clone(),
                 password_hash: pass_hash,
             })
-            .execute(&conn)
+            .execute(&get_connection(pool))
     })
     .await
     {
@@ -48,7 +47,7 @@ pub async fn login_request(
 ) -> impl Responder {
     let username = params.username.clone();
 
-    match get_user_from_database(username, pool).await {
+    match get_user_from_database(username, get_connection(pool)).await {
         Ok(result) => match result.len() {
             0 => "No such user",
             _ => {
@@ -82,15 +81,10 @@ pub async fn chpass_request(
         None => "Invalid session",
         Some(username) => {
             let name = username.clone();
-            match get_user_from_database(username, pool).await {
+            match get_user_from_database(username, get_connection(pool)).await {
                 Ok(result) => {
                     if result[0].password_hash == sha256(&params.oldpass) {
-                        change_password(
-                            name,
-                            sha256(&params.newpass),
-                            pool1.get().expect("Could not get db connection"),
-                        )
-                        .await;
+                        change_password(name, sha256(&params.newpass), get_connection(pool1)).await;
                         "Password changed"
                     } else {
                         "Wrong Password"
@@ -117,17 +111,15 @@ pub async fn confirm_delacc(
             let name = username.clone();
 
             match block(move || {
-                let conn = pool.get().expect("Could not get db connection");
                 accounts
                     .filter(dsl::username.eq(name))
-                    .load::<models::Account>(&conn)
+                    .load::<models::Account>(&get_connection(pool1))
             })
             .await
             {
                 Ok(result) => {
                     if result[0].password_hash == sha256(&password) {
-                        delete_user(username, pool1.get().expect("Could not get db connection"))
-                            .await;
+                        delete_user(username, get_connection(pool)).await;
                         id.forget();
                         "Account deleted"
                     } else {

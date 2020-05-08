@@ -34,13 +34,16 @@ pub async fn delete_user(
 
 pub async fn get_user_from_database(
     username: String,
-    pool: Data<DbPool>,
+    conn: PooledConnection<ConnectionManager<MysqlConnection>>,
 ) -> Result<Vec<models::Account>, BlockingError<diesel::result::Error>> {
     block(move || {
-        let conn = pool.get().expect("Could not get db connection");
         accounts
             .filter(dsl::username.eq(username))
             .load::<models::Account>(&conn)
     })
     .await
+}
+
+pub fn get_connection(pool: Data<DbPool>) -> PooledConnection<ConnectionManager<MysqlConnection>> {
+    pool.get().expect("Could not get db connection")
 }
