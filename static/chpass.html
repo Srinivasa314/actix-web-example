@@ -19,19 +19,16 @@
             else if (get("newpass").value.length < 8)
                 get("message").innerHTML = "Password too short <br> <br>"
             else {
-                var formData = new FormData();
-                formData.append("oldpass", get("oldpass").value);
-                formData.append("newpass", get("newpass").value);
-
                 var request = new XMLHttpRequest();
                 request.withCredentials = true;
                 request.onreadystatechange = function () {
                     if (request.readyState == XMLHttpRequest.DONE)
                         get("message").innerHTML = request.responseText + '<br><br>'
                 }
+                
                 request.open("POST", "/chpass_request");
-                request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
-                request.send(urlencodeFormData(formData));
+                request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                request.send(JSON.stringify({ "oldpass": get("oldpass").value, "newpass": get("newpass").value }));
             }
         }
     </script>

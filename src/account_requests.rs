@@ -2,7 +2,7 @@ mod db;
 use db::*;
 
 use actix_identity::Identity;
-use actix_web::{post, web::block, web::Data, web::Form, Responder};
+use actix_web::{post, web::block, web::Data, web::Json, Responder};
 
 use diesel::insert_into;
 use serde::{Deserialize, Serialize};
@@ -15,13 +15,13 @@ fn sha256(s: &str) -> Vec<u8> {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct FormParams {
+pub struct RequestParams {
     username: String,
     password: String,
 }
 
 #[post("/acc_create")]
-pub async fn create_account(pool: Data<DbPool>, params: Form<FormParams>) -> impl Responder {
+pub async fn create_account(pool: Data<DbPool>, params: Json<RequestParams>) -> impl Responder {
     let pass_hash = sha256(&params.password);
 
     match block(move || {
@@ -43,7 +43,7 @@ pub async fn create_account(pool: Data<DbPool>, params: Form<FormParams>) -> imp
 pub async fn login_request(
     id: Identity,
     pool: Data<DbPool>,
-    params: Form<FormParams>,
+    params: Json<RequestParams>,
 ) -> impl Responder {
     let username = params.username.clone();
 
@@ -73,7 +73,7 @@ pub struct ChangePassParams {
 pub async fn chpass_request(
     id: Identity,
     pool: Data<DbPool>,
-    params: Form<ChangePassParams>,
+    params: Json<ChangePassParams>,
 ) -> impl Responder {
     let pool1 = pool.clone();
 
