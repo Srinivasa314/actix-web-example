@@ -44,6 +44,6 @@ pub async fn get_user_from_database(
     .await
 }
 
-pub fn get_connection(pool: Data<DbPool>) -> PooledConnection<ConnectionManager<MysqlConnection>> {
-    pool.get().expect("Could not get db connection")
+pub async fn get_connection(pool: Data<DbPool>) -> PooledConnection<ConnectionManager<MysqlConnection>> {
+    block(move || pool.get()).await.expect("Could not get db connection")
 }

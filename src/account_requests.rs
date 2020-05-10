@@ -23,6 +23,7 @@ pub struct RequestParams {
 #[post("/acc_create")]
 pub async fn create_account(pool: Data<DbPool>, params: Json<RequestParams>) -> impl Responder {
     let pass_hash = sha256(&params.password);
+    let conn = get_connection(pool).await;
 
     match block(move || {
         insert_into(accounts)
@@ -30,7 +31,7 @@ pub async fn create_account(pool: Data<DbPool>, params: Json<RequestParams>) -> 
                 username: params.username.clone(),
                 password_hash: pass_hash,
             })
-            .execute(&get_connection(pool))
+            .execute(&conn)
     })
     .await
     {
@@ -47,7 +48,7 @@ pub async fn login_request(
 ) -> impl Responder {
     let username = params.username.clone();
 
-    match get_user_from_database(username, get_connection(pool)).await {
+    match get_user_from_database(username, get_connection(pool).await).await {
         Ok(result) => match result.len() {
             0 => "No such user",
             _ => {
@@ -81,10 +82,10 @@ pub async fn chpass_request(
         None => "Invalid session",
         Some(username) => {
             let name = username.clone();
-            match get_user_from_database(username, get_connection(pool)).await {
+            match get_user_from_database(username, get_connection(pool).await).await {
                 Ok(result) => {
                     if result[0].password_hash == sha256(&params.oldpass) {
-                        change_password(name, sha256(&params.newpass), get_connection(pool1)).await;
+                        change_password(name, sha256(&params.newpass), get_connection(pool1).await).await;
                         "Password changed"
                     } else {
                         "Wrong Password"
@@ -109,17 +110,18 @@ pub async fn confirm_delacc(
         Some(username) => {
             let pool1 = pool.clone();
             let name = username.clone();
+            let conn = get_connection(pool1).await;
 
             match block(move || {
                 accounts
                     .filter(dsl::username.eq(name))
-                    .load::<models::Account>(&get_connection(pool1))
+                    .load::<models::Account>(&conn)
             })
             .await
             {
                 Ok(result) => {
                     if result[0].password_hash == sha256(&password) {
-                        delete_user(username, get_connection(pool)).await;
+                        delete_user(username, get_connection(pool).await).await;
                         id.forget();
                         "Account deleted"
                     } else {
