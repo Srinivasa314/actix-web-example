@@ -56,13 +56,13 @@ async fn main() -> io::Result<()> {
         }
     };
 
+    let manager = ConnectionManager::<MysqlConnection>::new(&conn_url);
+    let pool = r2d2::Pool::builder()
+        .build(manager)
+        .expect("Failed to create pool");
+    
     HttpServer::new(move || {
-        let manager = ConnectionManager::<MysqlConnection>::new(&conn_url);
-        let pool = r2d2::Pool::builder()
-            .build(manager)
-            .expect("Failed to create pool");
         let tera = Tera::new("templates/*.html").expect("Failed to parse template files");
-
         App::new()
             .wrap(IdentityService::new(
                 CookieIdentityPolicy::new(&private_key)
@@ -70,7 +70,7 @@ async fn main() -> io::Result<()> {
                     .secure(false)
                     .max_age(31_556_952),
             ))
-            .data(pool)
+            .data(pool.clone())
             .data(tera)
             .service(index)
             .service(create_account)
