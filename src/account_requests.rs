@@ -10,8 +10,8 @@ use sha2::{Digest, Sha256};
 
 fn sha256(s: &str) -> Vec<u8> {
     let mut hasher = Sha256::new();
-    hasher.input(s);
-    hasher.result().to_vec()
+    hasher.update(s);
+    hasher.finalize().to_vec()
 }
 
 #[derive(Serialize, Deserialize)]
